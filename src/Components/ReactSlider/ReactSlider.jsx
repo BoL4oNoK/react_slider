@@ -34,6 +34,8 @@ const ReactSlider = ({
     sliderOptions.carouselMode ? (parseFloat(-100 / slidesPerView)) : 0,
   );
   const [autoPlayReverse, setAutoPlayReverse] = useState(false);
+  const [touchIsEnded, setTouchIsEnded] = useState(true);
+  const [touchStartPos, setTouchStartPos] = useState(null);
 
   const [preparedData] = useState((children)
     ? prepareData(children, sliderOptions.carouselMode)
@@ -51,8 +53,10 @@ const ReactSlider = ({
 
   const moveSlidesToRight = (pauseAction = false) => {
     setTransitionAnimation(null);
+    const sliderLength = preparedData.length - 1;
+    const maxTransition = (sliderLength / slidesPerView) * (parseFloat(100 / slidesPerView));
     if (
-      Math.abs(transitionValue) < ((preparedData.length - 1) * (parseFloat(100 / slidesPerView)))) {
+      Math.abs(transitionValue) < maxTransition) {
       setTransitionValue(transitionValue - (parseFloat(100 / slidesPerView)));
     }
 
@@ -95,6 +99,31 @@ const ReactSlider = ({
     } else {
       moveSlidesToLeft();
     }
+  };
+
+  const handleTouchStart = (event) => {
+    setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
+    if (touchIsEnded) {
+      setTouchIsEnded(false);
+      setTouchStartPos(event.changedTouches[0].screenX);
+    }
+    return false;
+  };
+  const handleTouchEnd = (event) => {
+    if (touchStartPos) {
+      const touchEnd = event.changedTouches[0].screenX;
+      const diff = Math.max(touchStartPos, touchEnd) - Math.min(touchStartPos, touchEnd);
+      if (diff < 100) return false;
+
+      setTouchIsEnded(true);
+      if (touchEnd > touchStartPos) {
+        moveSlidesToLeft();
+      } else {
+        moveSlidesToRight();
+      }
+      setTouchStartPos(null);
+    }
+    return false;
   };
 
   useEffect(() => {
@@ -145,6 +174,8 @@ const ReactSlider = ({
           transform: `translateX(${transitionValue}%)`,
         }}
         onTransitionEnd={handlerTransitionEnd}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {slidesList}
       </div>

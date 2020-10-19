@@ -16,7 +16,7 @@ const ReactSliderNavigation = ({
         className={itemClass}
         tabIndex={keyId}
         onClick={() => {
-          if (callbackFn) callbackFn(item * (-100 / slidesPerView) - (100 / slidesPerView));
+          if (callbackFn) callbackFn(item * (-100 / slidesPerView));
         }}
       />
     );
